@@ -16,7 +16,7 @@ db = MongoEngine()
 db.init_app(app)
 
 
-'''
+"""
 Sample Request Body
 {
     "id": 1,
@@ -27,7 +27,7 @@ Sample Request Body
     "age": 28
     "version": 1
 }
-'''
+"""
 # shema for person object
 class Person(db.Document):
     person_id = db.IntField()
@@ -112,7 +112,7 @@ class SchemaValidator(object):
         return errorMessages
         
 
-'''
+"""
 GET /api/persons Fetch a list of all persons (latest version) (200 success)
 
 POST /api/persons Create a new person (201 success)
@@ -124,10 +124,10 @@ PUT /api/persons/1 Update a single person using their id (204 success)
 DELETE /api/persons/1 Delete a single person using their id (204 success)
  
 GET /api/persons/1/v1 Fetch a single person using their id and a specified version (200 success)
-'''
+"""
 
 # this is a test endpoint to create some test data
-@app.route('/api/db_populate', methods=['POST'])
+@app.route("/api/db_populate", methods=["POST"])
 def db_populate():
     person1 = Person(person_id = 1, first_name = "Diego", middle_name = "", last_name = "Ortega", email = "test1@test.com", age = 28, version = 1)
     person2 = Person(person_id = 2, first_name = "John", middle_name = "", last_name = "Smith", email = "test2@test.com", age = 29, version = 1)
@@ -135,22 +135,22 @@ def db_populate():
     person2.save()
     return make_response("", 201)
 
-@app.route('/api/persons', methods=['GET','POST'])
+@app.route("/api/persons", methods=["GET","POST"])
 def api_persons():
-    if request.method == 'GET':
+    if request.method == "GET":
         persons = []
         for person in Person.objects:
             persons.append(person)
         return make_response(jsonify(persons), 200)
     
-    elif request.method == 'POST':
+    elif request.method == "POST":
         data = request.json
         _instance  = SchemaValidator(response=data)
         response = _instance.isTrue()
         if len(response) > 0:
             _ = {
-                'status:':'Error',
-                'message':response
+                "status:":"Error",
+                "message":response
             },403
             return _
         
@@ -165,9 +165,9 @@ def api_persons():
             person_obj = Person.objects(person_id = request_id).first()
             if person_obj:
                 message = {
-                    'message': 'Duplicate person with same id: ' + str(request_id),
-                    'request_url': request.url,
-                    'status': 404
+                    "message": "Duplicate person with same id: " + str(request_id),
+                    "request_url": request.url,
+                    "status": 404
                 }
                 response = jsonify(message)
                 return make_response(response, 404)
@@ -182,33 +182,33 @@ def api_persons():
                                 )
                 person.save()
                 message = {
-                    'message': 'Person created',
-                    'id': request_id,
-                    'request_url': request.url,
-                    'status': 201
+                    "message": "Person created",
+                    "id": request_id,
+                    "request_url": request.url,
+                    "status": 201
                 }
                 response = jsonify(message)
                 return make_response(response, 201)
         else:
             return not_found()
 
-@app.route('/api/persons/<id>', methods=['GET','PUT','DELETE'])
+@app.route("/api/persons/<id>", methods=["GET","PUT","DELETE"])
 def api_each_person(id):
-    if request.method == 'GET':
+    if request.method == "GET":
         person_obj = Person.objects(person_id = id).first()
         if person_obj:
             return make_response(jsonify(person_obj), 200)
         else:
             return not_found
     
-    elif request.method == 'PUT':
+    elif request.method == "PUT":
         data = request.json
         _instance  = SchemaValidator(response=data)
         response = _instance.isTrue()
         if len(response) > 0:
             _ = {
-                'status:':'Error',
-                'message':response
+                "status:":"Error",
+                "message":response
             },403
             return _
         
@@ -239,25 +239,25 @@ def api_each_person(id):
                                 version = person_obj.version + 1
                             )
             message = {
-                'message': 'Person updated',
-                'id': id,
-                'request_url': request.url,
-                'status': 200
+                "message": "Person updated",
+                "id": id,
+                "request_url": request.url,
+                "status": 200
             }
             response = jsonify(message)
             return make_response(response, 200)
         else:
             return not_found()
 
-    elif request.method == 'DELETE':
+    elif request.method == "DELETE":
         person_obj = Person.objects(person_id = id).first()
         if person_obj:
             person_obj.delete()
             message = {
-                'message': 'Person deleted',
-                'id': id,
-                'request_url': request.url,
-                'status': 200
+                "message": "Person deleted",
+                "id": id,
+                "request_url": request.url,
+                "status": 200
             }
             response = jsonify(message)
             # delete all versions of person
@@ -267,7 +267,7 @@ def api_each_person(id):
         else:
             return not_found()
 
-@app.route('/api/persons/<id>/<version_id>', methods=['GET'])
+@app.route("/api/persons/<id>/<version_id>", methods=["GET"])
 def api_each_person_version(id, version_id):
     person_obj = Person.objects(person_id = id, version = version_id).first()
     if person_obj:
@@ -281,14 +281,14 @@ def api_each_person_version(id, version_id):
 
 def not_found():
     message = {
-        'message': 'Resource Not Found',
-        'request_url': request.url,
-        'status': 404
+        "message": "Resource Not Found",
+        "request_url": request.url,
+        "status": 404
     }
     response = jsonify(message)
     response.status_code = 404
     return response
   
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()
