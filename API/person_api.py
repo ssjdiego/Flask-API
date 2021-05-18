@@ -72,6 +72,46 @@ class Version(db.Document):
             "version": self.version
         }
 
+class SchemaValidator(object):
+    def __init__(self, response={}):
+        self.response =  response
+    
+    def isTrue(self):
+        errorMessages = []
+        
+        try:
+            person_id = self.response.get("person_id", None)
+            if person_id is None:
+                raise Exception("Error")
+        except Exception as e:errorMessages.append("Field person_id is required")
+        
+        try:
+            first_name = self.response.get("first_name", None)
+            if first_name is None or len(first_name) < 1:
+                raise Exception("Error")
+        except Exception as e:errorMessages.append("Field first_name is required")
+        
+        try:
+            last_name = self.response.get("last_name", None)
+            if last_name is None or len(last_name) < 1:
+                raise Exception("Error")
+        except Exception as e:errorMessages.append("Field last_name is required")
+        
+        try:
+            email = self.response.get("email", None)
+            if email is None or len(email) < 1:
+                raise Exception("Error")
+        except Exception as e:errorMessages.append("Field email is required")
+        
+        try:
+            age = self.response.get("age", None)
+            if age is None:
+                raise Exception("Error")
+        except Exception as e:errorMessages.append("Field age is required")
+        
+        return errorMessages
+        
+
 '''
 GET /api/persons Fetch a list of all persons (latest version) (200 success)
 
@@ -105,6 +145,15 @@ def api_persons():
     
     elif request.method == 'POST':
         data = request.json
+        _instance  = SchemaValidator(response=data)
+        response = _instance.isTrue()
+        if len(response) > 0:
+            _ = {
+                'status:':'Error',
+                'message':response
+            },403
+            return _
+        
         request_id = data.get("person_id", None)
         request_first_name = data.get("first_name", None)
         request_middle_name = data.get("middle_name", None)
@@ -116,7 +165,7 @@ def api_persons():
             person_obj = Person.objects(person_id = request_id).first()
             if person_obj:
                 message = {
-                    'message': "Duplicate person with same id: " + str(request_id),
+                    'message': 'Duplicate person with same id: ' + str(request_id),
                     'request_url': request.url,
                     'status': 404
                 }
@@ -133,7 +182,7 @@ def api_persons():
                                 )
                 person.save()
                 message = {
-                    'message': "Person created",
+                    'message': 'Person created',
                     'id': request_id,
                     'request_url': request.url,
                     'status': 201
@@ -154,6 +203,15 @@ def api_each_person(id):
     
     elif request.method == 'PUT':
         data = request.json
+        _instance  = SchemaValidator(response=data)
+        response = _instance.isTrue()
+        if len(response) > 0:
+            _ = {
+                'status:':'Error',
+                'message':response
+            },403
+            return _
+        
         person_obj = Person.objects(person_id = id).first()
         if person_obj:
             oldVersion = Version(   person_id = person_obj.person_id, 
@@ -181,7 +239,7 @@ def api_each_person(id):
                                 version = person_obj.version + 1
                             )
             message = {
-                'message': "Person updated",
+                'message': 'Person updated',
                 'id': id,
                 'request_url': request.url,
                 'status': 200
@@ -196,7 +254,7 @@ def api_each_person(id):
         if person_obj:
             person_obj.delete()
             message = {
-                'message': "Person deleted",
+                'message': 'Person deleted',
                 'id': id,
                 'request_url': request.url,
                 'status': 200
@@ -230,9 +288,7 @@ def not_found():
     response = jsonify(message)
     response.status_code = 404
     return response
-
-
-    
+  
 
 if __name__ == '__main__':
     app.run()
