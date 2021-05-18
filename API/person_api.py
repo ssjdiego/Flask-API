@@ -19,13 +19,13 @@ db.init_app(app)
 '''
 Sample Request Body
 {
-    id: 1,
-    first_name: "Diego",
-    middle_name: "",
-    last_name: "Ortega",
-    email: "test@test.com",
-    age: 28
-    version: 1
+    "id": 1,
+    "first_name": "Diego",
+    "middle_name": "",
+    "last_name": "Ortega",
+    "email": "test@test.com",
+    "age": 28
+    "version": 1
 }
 '''
 # shema for person object
